@@ -21,58 +21,55 @@
 #
 ###############################################################################
 
-USES_DPI=1
+GUI         ?= 0
 
-ifeq ($(USES_DPI),1)
-  DPILIB_VLOG_OPT = 
-  DPILIB_VSIM_OPT = -sv_lib $(UVM_HOME)/../../uvm-1.2/linux_x86_64/uvm_dpi
-  DPILIB_TARGET = dpi_lib$(BITS)
-else
-  DPILIB_VLOG_OPT = +define+UVM_NO_DPI 
-  DPILIB_VSIM_OPT = 
-  DPILIB_TARGET =
-endif
-
-LIBDIR  = $(UVM_HOME)/lib
-LIBNAME = uvm_dpi
-
+# Questasim commands
 VLIB      = vlib
+VLOG      = vlog
+VOPT      = vopt
+VSIM      = vsim
+
+# Work library
 VWORK     = work
 
-VLOG          = vlog
-VLOG_FLAGS    = -pedanticerrors -suppress 2577 -suppress 2583 \
-        $(DPILIB_VLOG_OPT) \
-	-timescale "1ns/1ps" \
-        -mfcu \
-        -suppress 2181 \
-	-suppress 13262 \
-        +acc=rb \
-        -writetoplevels  uvmt_cv32_tb \
-        +incdir+$(UVM_HOME)/src \
-        $(UVM_HOME)/src/uvm.sv
-
+# Build parameters
+VLOG_FLAGS    =-L $(QUESTA_HOME)/uvm-1.2 -pedanticerrors -timescale "1ns/1ps" -mfcu +acc=rb \
+    -suppress 2577 -suppress 2583 -suppress 2181 -suppress 13262 \
+#     -writetoplevels  uvmt_cv32_tb
+VOPT_FLAGS    = -debugdb -fsmdebug +acc #=mnprft
+        
 VLOG_LOG      = vloggy
 
-VOPT          = vopt
-VOPT_FLAGS    = -debugdb -fsmdebug -pedanticerrors +acc #=mnprft
-
-VSIM              = vsim
-VSIM_HOME         = /usr/pack/modelsim-$(VVERSION)-kgf/questasim
+# Simulation parameters
 VSIM_FLAGS       ?=  # user defined
-ALL_VSIM_FLAGS    = $(VSIM_FLAGS)
-VSIM_DEBUG_FLAGS  = -debugdb
+VSIM_FLAGS       += -novopt -suppress 12110
+VSIM_FLAGS       += +firmware=$(VSIM_FIRMWARE)
+VSIM_FLAGS       += +signature=dump_sign.txt
+ifeq ($(GUI), 0)
+	VSIM_FLAGS += -c -do 'source $(VSIM_SCRIPT); exit -f'
+else
+	VSIM_FLAGS += $(VSIM_GUI_FLAGS)
+	VSIM_FLAGS += -do $(VSIM_SCRIPT)
+endif
 VSIM_GUI_FLAGS    = -gui -debugdb
-VSIM_SCRIPT_DIR	  = ../questa
+UVM_TESTNAME = uvmt_cv32_firmware_test_c
+
+# Simulation scripts
+VSIM_SCRIPT_DIR   = ../questa
 VSIM_SCRIPT       = $(VSIM_SCRIPT_DIR)/vsim.tcl
 
-VSIM_UVM_ARGS           = +incdir+$(UVM_HOME)/src $(UVM_HOME)/src/uvm_pkg.sv
+###############################################################################
+# Help !!!!
 
 no_rule:
 	@echo 'makefile: SIMULATOR is set to $(SIMULATOR), but no rule/target specified.'
 	@echo 'try "make SIMULATOR=vsim sanity" (or just "make sanity" if shell ENV variable SIMULATOR is already set).'
 
-help:
+help-vsim:
 	vsim -help
+
+###############################################################################
+# Generic rules
 
 .lib-rtl:
 	$(VLIB) $(VWORK)
@@ -88,94 +85,82 @@ help:
 		-f $(CV32E40P_MANIFEST) \
 		-f $(DV_UVMT_CV32_PATH)/uvmt_cv32.flist \
 		$(TBSRC_PKG) $(TBSRC)
-		
-
-vsim-all:  .opt-rtl
-	
+	touch .build-rtl
 
 .opt-rtl: .build-rtl
 	$(VOPT) -work $(VWORK) $(VOPT_FLAGS) $(RTLSRC_VLOG_TB_TOP) -o $(RTLSRC_VOPT_TB_TOP)
 	touch .opt-rtl
 
+.PHONY: vsim-build
+vsim-build: .opt-rtl
+
 # run tb and exit
 .PHONY: vsim-run
-vsim-run: ALL_VSIM_FLAGS += -c +UVM_TESTNAME=uvmt_cv32_firmware_test_c 
-vsim-run: vsim-all
-	$(VSIM) -work $(VWORK) $(DPILIB_VSIM_OPT) $(ALL_VSIM_FLAGS)\
-	$(RTLSRC_VOPT_TB_TOP) -do 'source $(VSIM_SCRIPT); exit -f'
-
-
+vsim-run:
+	$(VSIM) $(VSIM_FLAGS) -work $(VWORK) +UVM_TESTNAME=$(UVM_TESTNAME) \
+	$(RTLSRC_VOPT_TB_TOP)  
 
 # run tb and drop into interactive shell
 .PHONY: vsim-run-sh
-vsim-run-sh: ALL_VSIM_FLAGS += -c
-vsim-run-sh: vsim-all
-	$(VSIM) -work $(VWORK) $(DPILIB_VSIM_OPT) $(ALL_VSIM_FLAGS) \
-	$(RTLSRC_VOPT_TB_TOP) -do $(VSIM_SCRIPT)
+vsim-run-sh: VSIM_FLAGS += -c
+vsim-run-sh:
+	$(VSIM) -work $(VWORK) $(VSIM_FLAGS) \
+	$(RTLSRC_VOPT_TB_TOP)
 
-# run tb with simulator gui
-.PHONY: vsim-run-gui
-vsim-run-gui: ALL_VSIM_FLAGS += $(VSIM_GUI_FLAGS) +UVM_TESTNAME=uvmt_cv32_firmware_test_c +firmware=$(FIRMWARE)/firmware.hex
-vsim-run-gui: vsim-all
-	$(VSIM) -work $(VWORK) $(DPILIB_VSIM_OPT) $(ALL_VSIM_FLAGS) \
-	$(RTLSRC_VOPT_TB_TOP) -do $(VSIM_SCRIPT)
+vsim-all: $(VSIM_FIRMWARE) vsim-build vsim-run
+
+%.vsim-run:
+	@echo "sim: $*"
+	make SIMULATOR=vsim vsim-all VSIM_FIRMWARE=$*
+
+###############################################################################
+# Hello world !!!!!
+
+.PHONY: hello-world
+hello-world: $(CUSTOM)/hello_world.hex.$(SIMULATOR)-run
+
+###############################################################################
+# RISC-V tests
+
+.PHONY: cv32-riscv-tests
+cv32-riscv-tests: \
+	$(CV32_RISCV_TESTS_FIRMWARE)/cv32_riscv_tests_firmware.hex.$(SIMULATOR)-run
+
+###############################################################################
+# Firmware test
+
+.PHONY: cv32-firmware
+cv32-firmware: \
+	$(FIRMWARE)/firmware.hex.$(SIMULATOR)-run
+
+###############################################################################
+# firware unit test
+# ex: make questa-unit-test addi
 
 
-.PHONY: questa-hello_world
-questa-hello_world: vsim-all $(CUSTOM)/hello_world.hex
-questa-hello_world: ALL_VSIM_FLAGS += +firmware=$(CUSTOM)/hello_world.hex
-questa-hello_world: vsim-run
 
-.PHONY: questa-cv32_riscv_tests
-questa-cv32_riscv_tests: vsim-all $(CV32_RISCV_TESTS_FIRMWARE)/cv32_riscv_tests_firmware.hex
-questa-cv32_riscv_tests: ALL_VSIM_FLAGS += +firmware=$(CV32_RISCV_TESTS_FIRMWARE)/cv32_riscv_tests_firmware.hex
-questa-cv32_riscv_tests: vsim-run
+.PHONY: unit-test
+unit-test:  firmware-unit-test-clean 
+unit-test:  $(FIRMWARE)/firmware_unit_test.hex
+unit-test:  $(FIRMWARE)/firmware_unit_test.hex.$(SIMULATOR)-run
 
-.PHONY: questa-cv32_riscv_tests-gui
-questa-cv32_riscv_tests-gui: vsim-all $(CV32_RISCV_TESTS_FIRMWARE)/cv32_riscv_tests_firmware.hex
-questa-cv32_riscv_tests-gui: ALL_VSIM_FLAGS += +firmware=$(CV32_RISCV_TESTS_FIRMWARE)/cv32_riscv_tests_firmware.hex
-questa-cv32_riscv_tests-gui: vsim-run-gui
 
-.PHONY: questa-cv32_riscv_compliance_tests
-questa-cv32_riscv_compliance_tests: vsim-all $(CV32_RISCV_COMPLIANCE_TESTS_FIRMWARE)/cv32_riscv_compliance_tests_firmware.hex
-questa-cv32_riscv_compliance_tests: ALL_VSIM_FLAGS += +firmware=$(CV32_RISCV_COMPLIANCE_TESTS_FIRMWARE)/cv32_riscv_compliance_tests_firmware.hex
-questa-cv32_riscv_compliance_tests: vsim-run
+###############################################################################
+# cv32_riscv_compliance_test_firmware
 
-.PHONY: questa-cv32_riscv_compliance_tests-gui
-questa-cv32_riscv_compliance_tests-gui: vsim-all $(CV32_RISCV_COMPLIANCE_TESTS_FIRMWARE)/cv32_riscv_compliance_tests_firmware.hex
-questa-cv32_riscv_compliance_tests-gui: ALL_VSIM_FLAGS += +firmware=$(CV32_RISCV_COMPLIANCE_TESTS_FIRMWARE)/cv32_riscv_compliance_tests_firmware.hex
-questa-cv32_riscv_compliance_tests-gui: vsim-run-gui
+.PHONY: cv32-riscv-compliance-tests
+cv32-riscv-compliance-tests: \
+	$(CV32_RISCV_COMPLIANCE_TESTS_FIRMWARE)/cv32_riscv_compliance_tests_firmware.hex.$(SIMULATOR)-run
 
-.PHONY: questa-firmware
-questa-firmware: vsim-all $(FIRMWARE)/firmware.hex
-questa-firmware: ALL_VSIM_FLAGS += +firmware=$(FIRMWARE)/firmware.hex
-questa-firmware: vsim-run
-
-.PHONY: questa-firmware-gui
-questa-firmware-gui: vsim-all $(FIRMWARE)/firmware.hex
-questa-firmware-gui: ALL_VSIM_FLAGS += +firmware=$(FIRMWARE)/firmware.hex
-questa-firmware-gui: vsim-run-gui
-
-.PHONY: questa-unit-test 
-questa-unit-test:  firmware-unit-test-clean 
-questa-unit-test:  $(FIRMWARE)/firmware_unit_test.hex 
-questa-unit-test: ALL_VSIM_FLAGS += "+firmware=$(FIRMWARE)/firmware_unit_test.hex"
-questa-unit-test: vsim-run
-
-.PHONY: questa-unit-test-gui 
-questa-unit-test-gui:  firmware-unit-test-clean 
-questa-unit-test-gui:  $(FIRMWARE)/firmware_unit_test.hex 
-questa-unit-test-gui: ALL_VSIM_FLAGS += "+firmware=$(FIRMWARE)/firmware_unit_test.hex"
-questa-unit-test-gui: vsim-run-gui
 
 ###############################################################################
 # Clean up your mess!
 
 clean:
 	if [ -d $(VWORK) ]; then rm -r $(VWORK); fi
-	rm -f transcript vsim.wlf vsim.dbg trace_core*.log \
+	rm -f transcript vsim.wlf vsim.dbg trace_core*.log dump_sign.txt\
 	.build-rtl .opt-rtl .lib-rtl *.vcd objdump
 
 # All generated files plus the clone of the RTL
-clean_all: clean clean_core_tests
-	rm -rf $(CV32E40P_PKG)
+clean_all: clean clean_core_tests clean_riscvdv clean_test_programs clean_new_riscv_compliance
+	rm -rf $(CV32E40P_PKG) $(CORE_TEST_DIR)/build
