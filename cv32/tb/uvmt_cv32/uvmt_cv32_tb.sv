@@ -62,6 +62,12 @@ module uvmt_cv32_tb;
                         )
                         dut_wrap (.*);
    
+  /** RTL Assertions */
+  bind cv32e40p_prefetch_controller:
+    dut_wrap.riscv_core_i.if_stage_i.prefetch_32.prefetch_buffer_i.prefetch_controller_i
+    cv32e40p_prefetch_controller_sva
+    prefetch_controller_sva (.*);
+
   /**
    * ISS WRAPPER instance:
    * TODO: finalize the parameters passed in.
@@ -84,6 +90,7 @@ module uvmt_cv32_tb;
       assign step_compare_if.insn_pc = dut_wrap.riscv_core_i.tracer_i.insn_pc;
       assign step_compare_if.riscy_GPR = dut_wrap.riscv_core_i.id_stage_i.registers_i.register_file_i.mem;
     `endif
+
    /**
     * Test bench entry point.
     */

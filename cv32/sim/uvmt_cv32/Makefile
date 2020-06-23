@@ -109,6 +109,7 @@ CV32E40P_PKG         := $(PROJ_ROOT_DIR)/core-v-cores/cv32e40p
 FPNEW_PKG            := $(CV32E40P_PKG)/rtl/fpnew
 CV32E40P_MANIFEST    := $(CV32E40P_PKG)/cv32e40p_manifest.flist
 export DESIGN_RTL_DIR = $(CV32E40P_PKG)/rtl
+export DESIGN_SVA_DIR = $(CV32E40P_PKG)/rtl/sva
 
 RTLSRC_HOME   := $(CV32E40P_PKG)/rtl
 RTLSRC_INCDIR := $(RTLSRC_HOME)/include

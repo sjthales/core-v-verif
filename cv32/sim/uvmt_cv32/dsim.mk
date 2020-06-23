@@ -91,6 +91,7 @@ comp: mk_results $(CV32E40P_PKG) $(OVP_MODEL_DPI)
 		+incdir+$(DV_UVME_CV32_PATH) \
 		+incdir+$(DV_UVMT_CV32_PATH) \
 		-f $(CV32E40P_MANIFEST) \
+		$(DESIGN_SVA_DIR)/cv32e40p_prefetch_controller_sva.sv \
 		$(DSIM_FILE_LIST) \
 		-work $(DSIM_WORK) \
 		+$(UVM_PLUSARGS) \
