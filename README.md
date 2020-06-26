@@ -27,8 +27,8 @@ Empty sub-directory into which the RTL from one or more of the [CORE-V-CORES](ht
 ### cv32
 Verification Environments, testbenches, testcases and simulation Makefiles for the CV32E cores.
 
-### cv64
-Verification Environments, testbenches, testcases and simulation Makefiles for the CV64A cores.
+### cva6
+Verification Environments, testbenches, testcases and simulation Makefiles for the CVA6 cores.
 
 ### doc
 Contains a pointer to the [CORE-V-DOCS](https://github.com/openhwgroup/core-v-docs) repository.
