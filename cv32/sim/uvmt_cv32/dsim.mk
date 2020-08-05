@@ -241,7 +241,7 @@ unit-test: dsim-unit-test
 ###############################################################################
 # Use Google instruction stream generator (RISCV-DV) to create new test-programs
 #riscv-dv: clone_riscv-dv
-comp_riscv-dv:
+comp_riscv-dv: clone_riscv-dv
 	mkdir -p $(COREVDV_PKG)/out_$(DATE)/dsim
 	dsim -sv \
 		-work $(COREVDV_PKG)/out_$(DATE)/dsim \
@@ -304,7 +304,7 @@ gen_corev_rand_instr_test:
     +directed_instr_6=riscv_jal_instr,4
 	mv *.S $(CORE_TEST_DIR)/custom
 
-gen_corev_jump_stress_test:
+gen_corev_jump_stress_test: comp_riscv-dv
 	dsim  -sv_seed $(RNDSEED) \
 		-sv_lib $(UVM_HOME)/src/dpi/libuvm_dpi.so \
 		+acc+rwb \
