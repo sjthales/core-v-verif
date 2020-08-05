@@ -44,6 +44,7 @@
 MAKE           = make
 COREV_PROJ     = cv32
 PROJ_ROOT_DIR  = $(PWD)/../../..
+UVMT_CV32_SIM_DIR = $(PWD)
 DATE           = $(shell date +%F)
 .DEFAULT_GOAL := no_rule 
 
@@ -101,7 +102,8 @@ RTLSRC_VOPT_TB_TOP	:= $(addsuffix _vopt, $(RTLSRC_VLOG_TB_TOP))
 # DESIGN_RTL_DIR is used by CV32E40P_MANIFEST file
 CV32E40P_PKG         := $(PROJ_ROOT_DIR)/core-v-cores/cv32e40p
 FPNEW_PKG            := $(CV32E40P_PKG)/rtl/fpnew
-CV32E40P_MANIFEST    := $(CV32E40P_PKG)/cv32e40p_manifest.flist
+#CV32E40P_MANIFEST    := $(CV32E40P_PKG)/cv32e40p_manifest.flist
+CV32E40P_MANIFEST    := $(UVMT_CV32_SIM_DIR)/cv32e40p_temp_manifest.flist
 export DESIGN_RTL_DIR = $(CV32E40P_PKG)/rtl
 
 RTLSRC_HOME   := $(CV32E40P_PKG)/rtl
