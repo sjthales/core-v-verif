@@ -1,6 +1,7 @@
 CV_SW_TOOLCHAIN  ?= /opt/riscv
 RISCV            ?= $(CV_SW_TOOLCHAIN)
-RISCV_EXE_PREFIX ?= $(RISCV)/bin/riscv32-unknown-elf-
+RISCV_PREFIX     ?= riscv32-unknown-elf-
+RISCV_EXE_PREFIX ?= $(RISCV)/bin/$(RISCV_PREFIX)
 RISCV_GCC = $(RISCV_EXE_PREFIX)gcc
 RISCV_AR = $(RISCV_EXE_PREFIX)ar
 SRC = crt0.S handlers.S syscalls.c vectors.S
