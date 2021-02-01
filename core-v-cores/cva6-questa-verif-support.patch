@@ -26,7 +26,7 @@ index be56586..4a54781 100644
  	vsim${questa_version} +permissive $(questa-flags) -lib $(library) +MAX_CYCLES=$(max_cycles) +UVM_TESTNAME=$(test_case) \
 -	-do "coverage save -onexit $(preload).ucdb; run -a; quit -code [coverage attribute -name TESTSTATUS -concise -value $(preload)]" $(questa-cmd) \
 -	+BASEDIR=$(riscv-test-dir) $(uvm-flags) $(QUESTASIM_FLAGS) -gblso $(SPIKE_ROOT)/lib/libfesvr.so -sv_lib $(dpi-library)/ariane_dpi  \
-+	-wlf $(elf-bin).wlf -do " log -r /*; add wave -r /*;run -a;quit" \
++	"run -a;quit" \
 +	+BASEDIR=$(riscv-test-dir) $(uvm-flags) $(QUESTASIM_FLAGS)  -Lf $(SPIKE_ROOT)/lib/libfesvr.a -sv_lib $(dpi-library)/ariane_dpi  \
  	${top_level}_optimized +permissive-off ++$(elf-bin) ++$(target-options) | tee sim.log
  
