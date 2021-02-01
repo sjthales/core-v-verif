@@ -1,0 +1,13 @@
+diff --git a/Makefile b/Makefile
+index be56586..be6a7b6 100644
+--- a/Makefile
++++ b/Makefile
+@@ -322,7 +322,7 @@ $(dpi-library)/ariane_dpi.so: $(dpi)
+ # if you want to run in batch mode, use make <testname> batch-mode=1
+ # alternatively you can call make sim elf-bin=<path/to/elf-bin> in order to load an arbitrary binary
+ generate-trace-vsim:
+-	make sim preload=$(preload) elf-bin= batch-mode=1
++	make sim elf-bin=$(elf-bin) batch-mode=1
+ 	make generate-trace
+ 
+ sim: build

@@ -50,7 +50,7 @@ if ! [ -n "$CVA6_REPO" ]; then
   CVA6_REPO="https://github.com/ThalesGroup/cva6.git"
   CVA6_BRANCH="master-verif"
   CVA6_HASH="22f718c0f25e1abaae46aafe4b1760ff0be903d0"
-  CVA6_PATCH=
+  CVA6_PATCH="cva6-questa-verif-support.patch"
 fi
 echo $CVA6_REPO
 echo $CVA6_BRANCH

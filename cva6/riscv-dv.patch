@@ -1,5 +1,13 @@
 diff --git a/run.py b/run.py
 index bae34b7..76df3c7 100644
+--- a/yaml/iss.yaml
++++ b/yaml/iss.yaml
+@@ -25,7 +25,7 @@
+ - iss: vsim
+   path_var: RTL_PATH
+   cmd: >
+-    make -C <path_var> generate-trace-vsim preload=<elf> elf-bin=none
++    make -C <path_var> generate-trace-vsim elf-bin=<elf>
 --- a/run.py
 +++ b/run.py
 @@ -23,6 +23,7 @@ import sys
