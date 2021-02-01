@@ -36,7 +36,7 @@ if ! [ -n "$DV_REPO" ]; then
   export DV_REPO="https://github.com/ThalesGroup/riscv-dv.git"
   export DV_BRANCH="oss"
   export DV_HASH="8ff0a5ecb56269cfff94b59c9f7f4e267630ef20"
-  export DV_PATCH=
+  export DV_PATCH="../../cva6/riscv-dv.patch"
 fi
 echo $DV_REPO
 echo $DV_BRANCH
@@ -46,10 +46,7 @@ echo $DV_PATCH
 mkdir -p uvm
 if ! [ -d uvm/riscv-dv ]; then
   git clone $DV_REPO -b $DV_BRANCH uvm/riscv-dv
-  cd uvm/riscv-dv; git checkout $DV_HASH; 
-  if [ -f "$DV_PATCH" ]; then
-    git apply $DV_PATCH
-  fi
+  cd uvm/riscv-dv; git checkout $DV_HASH;git apply $DV_PATCH;
   cd -
 fi
 
